@@ -18,7 +18,7 @@ use error::{Error, ErrorReason};
 
 mod elements;
 pub use elements::{Coordinate, Id, Role, Bounds, Node, Way, Relation, Member, Tag, Reference,
-                   UnresolvedReference};
+                   UnresolvedReference, Timestamp, Version};
 mod polygon;
 
 #[derive(Debug)]
@@ -40,7 +40,7 @@ impl OSM {
     }
 
     pub fn parse<R: Read>(source: R) -> Result<OSM, Error> {
-        
+
         let mut osm = OSM::empty();
 
         let mut parser = EventReader::new(source);
@@ -60,26 +60,32 @@ impl OSM {
                         ElementData::Ignored => continue,
                         ElementData::Bounds(minlat, minlon, maxlat, maxlon) => {
                             osm.bounds = Some(Bounds {
-                                minlat: minlat,
-                                minlon: minlon,
-                                maxlat: maxlat,
-                                maxlon: maxlon,
-                            });
+                                                  minlat: minlat,
+                                                  minlon: minlon,
+                                                  maxlat: maxlat,
+                                                  maxlon: maxlon,
+                                              });
                         }
-                        ElementData::Node(id, lat, lon, tags) => {
-                            osm.nodes.push(Node {
-                                id: id,
-                                lat: lat,
-                                lon: lon,
-                                tags: tags,
-                            });
+                        ElementData::Node(id, lat, lon, tags, version, timestamp) => {
+                            osm.nodes
+                                .push(Node {
+                                          id: id,
+                                          lat: lat,
+                                          lon: lon,
+                                          tags: tags,
+                                          version: version,
+                                          timestamp: timestamp,
+                                      });
                         }
-                        ElementData::Way(id, node_refs, tags) => {
-                            osm.ways.push(Way {
-                                id: id,
-                                nodes: node_refs,
-                                tags: tags,
-                            });
+                        ElementData::Way(id, node_refs, tags, version, timestamp) => {
+                            osm.ways
+                                .push(Way {
+                                          id: id,
+                                          nodes: node_refs,
+                                          tags: tags,
+                                          version: version,
+                                          timestamp: timestamp,
+                                      });
                         }
                         ElementData::Relation(relation) => {
                             osm.relations.push(relation);
@@ -126,8 +132,8 @@ enum ElementType {
 
 enum ElementData {
     Bounds(Coordinate, Coordinate, Coordinate, Coordinate),
-    Node(Id, Coordinate, Coordinate, Vec<Tag>),
-    Way(Id, Vec<UnresolvedReference>, Vec<Tag>),
+    Node(Id, Coordinate, Coordinate, Vec<Tag>, Version, Timestamp),
+    Way(Id, Vec<UnresolvedReference>, Vec<Tag>, Version, Timestamp),
     Relation(Relation),
     // These two are here so we can terminate and skip uninteresting data without
     // using error handling.
@@ -173,9 +179,12 @@ fn parse_element_data<R: Read>(parser: &mut EventReader<R>) -> Result<ElementDat
 }
 
 fn parse_relation<R: Read>(parser: &mut EventReader<R>,
-                  attrs: &Vec<OwnedAttribute>)
-                  -> Result<ElementData, Error> {
+                           attrs: &Vec<OwnedAttribute>)
+                           -> Result<ElementData, Error> {
     let id = try!(find_attribute("id", attrs).map_err(Error::MalformedRelation));
+    let version = try!(find_attribute("version", attrs).map_err(Error::MalformedRelation));
+    let timestamp = try!(find_attribute_uncasted("timestamp", attrs)
+                             .map_err(Error::MalformedRelation));
 
     let mut members = Vec::new();
     let mut tags = Vec::new();
@@ -188,10 +197,12 @@ fn parse_relation<R: Read>(parser: &mut EventReader<R>,
                 match element_type {
                     ElementType::Relation => {
                         return Ok(ElementData::Relation(Relation {
-                            id: id,
-                            members: members,
-                            tags: tags,
-                        }))
+                                                            id: id,
+                                                            members: members,
+                                                            tags: tags,
+                                                            version: version,
+                                                            timestamp: timestamp,
+                                                        }));
                     }
                     _ => continue,
                 }
@@ -207,11 +218,11 @@ fn parse_relation<R: Read>(parser: &mut EventReader<R>,
                     }
                     ElementType::Member => {
                         let el_type = try!(find_attribute_uncasted("type", &attributes)
-                            .map_err(Error::MalformedRelation));
+                                               .map_err(Error::MalformedRelation));
                         let el_ref = try!(find_attribute("ref", &attributes)
-                            .map_err(Error::MalformedRelation));
+                                              .map_err(Error::MalformedRelation));
                         let el_role = try!(find_attribute_uncasted("role", &attributes)
-                            .map_err(Error::MalformedRelation));
+                                               .map_err(Error::MalformedRelation));
 
                         let el = match el_type.to_lowercase().as_ref() {
                             "node" => Member::Node(UnresolvedReference::Node(el_ref), el_role),
@@ -236,9 +247,11 @@ fn parse_relation<R: Read>(parser: &mut EventReader<R>,
 }
 
 fn parse_way<R: Read>(parser: &mut EventReader<R>,
-             attrs: &Vec<OwnedAttribute>)
-             -> Result<ElementData, Error> {
+                      attrs: &Vec<OwnedAttribute>)
+                      -> Result<ElementData, Error> {
     let id = try!(find_attribute("id", attrs).map_err(Error::MalformedWay));
+    let version = try!(find_attribute("version", attrs).map_err(Error::MalformedWay));
+    let timestamp = try!(find_attribute_uncasted("timestamp", attrs).map_err(Error::MalformedWay));
 
     let mut node_refs = Vec::new();
     let mut tags = Vec::new();
@@ -249,7 +262,9 @@ fn parse_way<R: Read>(parser: &mut EventReader<R>,
                 let element_type = try!(ElementType::from_str(&name.local_name));
 
                 match element_type {
-                    ElementType::Way => return Ok(ElementData::Way(id, node_refs, tags)),
+                    ElementType::Way => {
+                        return Ok(ElementData::Way(id, node_refs, tags, version, timestamp))
+                    }
                     _ => continue,
                 }
             }
@@ -264,7 +279,7 @@ fn parse_way<R: Read>(parser: &mut EventReader<R>,
                     }
                     ElementType::NodeRef => {
                         let node_ref = try!(find_attribute("ref", &attributes)
-                            .map_err(Error::MalformedWay));
+                                                .map_err(Error::MalformedWay));
                         node_refs.push(UnresolvedReference::Node(node_ref));
                     }
                     ElementType::Bounds | ElementType::Node | ElementType::Relation |
@@ -280,11 +295,13 @@ fn parse_way<R: Read>(parser: &mut EventReader<R>,
 }
 
 fn parse_node<R: Read>(parser: &mut EventReader<R>,
-              attrs: &Vec<OwnedAttribute>)
-              -> Result<ElementData, Error> {
+                       attrs: &Vec<OwnedAttribute>)
+                       -> Result<ElementData, Error> {
     let id = try!(find_attribute("id", attrs).map_err(Error::MalformedNode));
     let lat = try!(find_attribute("lat", attrs).map_err(Error::MalformedNode));
     let lon = try!(find_attribute("lon", attrs).map_err(Error::MalformedNode));
+    let version = try!(find_attribute("version", attrs).map_err(Error::MalformedNode));
+    let timestamp = try!(find_attribute_uncasted("timestamp", attrs).map_err(Error::MalformedNode));
 
     let mut tags = Vec::new();
 
@@ -294,7 +311,9 @@ fn parse_node<R: Read>(parser: &mut EventReader<R>,
                 let element_type = try!(ElementType::from_str(&name.local_name));
 
                 match element_type {
-                    ElementType::Node => return Ok(ElementData::Node(id, lat, lon, tags)),
+                    ElementType::Node => {
+                        return Ok(ElementData::Node(id, lat, lon, tags, version, timestamp))
+                    }
                     _ => continue,
                 }
             }
@@ -321,10 +340,7 @@ fn parse_node<R: Read>(parser: &mut EventReader<R>,
 fn parse_tag(attributes: &Vec<OwnedAttribute>) -> Result<Tag, Error> {
     let key = try!(find_attribute_uncasted("k", attributes).map_err(Error::MalformedTag));
     let val = try!(find_attribute_uncasted("v", attributes).map_err(Error::MalformedTag));
-    Ok(Tag {
-        key: key,
-        val: val,
-    })
+    Ok(Tag { key: key, val: val })
 }
 
 fn parse_bounds(attrs: &Vec<OwnedAttribute>) -> Result<ElementData, Error> {

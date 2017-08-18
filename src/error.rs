@@ -49,11 +49,13 @@ impl fmt::Display for Error {
             MalformedTag(ref reason) => write!(f, "OSM XML error: Malformed tag: {:?}", reason),
             MalformedNode(ref reason) => write!(f, "OSM XML error: Malformed node: {:?}", reason),
             MalformedWay(ref reason) => write!(f, "OSM XML error: Malformed way: {:?}", reason),
-            MalformedRelation(ref reason) => write!(f, "OSM XML error: Malformed relation: {:?}", reason),
+            MalformedRelation(ref reason) => {
+                write!(f, "OSM XML error: Malformed relation: {:?}", reason)
+            }
             UnknownElement => write!(f, "OSM XML error: Unknown XML element"),
             XmlParseError(ref reason) => write!(f, "OSM XML parse error: {}", reason),
         }
-        
+
     }
 }
 

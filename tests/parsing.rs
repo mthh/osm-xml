@@ -166,31 +166,31 @@ fn way_node_references() {
 
     match nodes[0] {
         osm::UnresolvedReference::Node(id) => assert_eq!(id, 1375815878),
-        _ => assert!(false, "Way reference was not reference to Node!")
+        _ => assert!(false, "Way reference was not reference to Node!"),
     }
     match nodes[1] {
         osm::UnresolvedReference::Node(id) => assert_eq!(id, 391448656),
-        _ => assert!(false, "Way reference was not reference to Node!")
+        _ => assert!(false, "Way reference was not reference to Node!"),
     }
     match nodes[2] {
         osm::UnresolvedReference::Node(id) => assert_eq!(id, 340886677),
-        _ => assert!(false, "Way reference was not reference to Node!")
+        _ => assert!(false, "Way reference was not reference to Node!"),
     }
     match nodes[3] {
         osm::UnresolvedReference::Node(id) => assert_eq!(id, 1651393269),
-        _ => assert!(false, "Way reference was not reference to Node!")
+        _ => assert!(false, "Way reference was not reference to Node!"),
     }
     match nodes[4] {
         osm::UnresolvedReference::Node(id) => assert_eq!(id, 471408613),
-        _ => assert!(false, "Way reference was not reference to Node!")
+        _ => assert!(false, "Way reference was not reference to Node!"),
     }
     match nodes[5] {
         osm::UnresolvedReference::Node(id) => assert_eq!(id, 25470395),
-        _ => assert!(false, "Way reference was not reference to Node!")
+        _ => assert!(false, "Way reference was not reference to Node!"),
     }
     match nodes[6] {
         osm::UnresolvedReference::Node(id) => assert_eq!(id, 1376857625),
-        _ => assert!(false, "Way reference was not reference to Node!")
+        _ => assert!(false, "Way reference was not reference to Node!"),
     }
 }
 
@@ -227,22 +227,22 @@ fn relation_node_members() {
         osm::Member::Node(ref ref_id, ref role) => {
             match *ref_id {
                 osm::UnresolvedReference::Node(id) => assert_eq!(id, 345579224),
-                _ => assert!(false, "Member reference was wrong type!")
+                _ => assert!(false, "Member reference was wrong type!"),
             }
             assert_eq!(*role, "camera".to_string());
-        },
-        _ => assert!(false, "Member was not expected Member-variant")
+        }
+        _ => assert!(false, "Member was not expected Member-variant"),
     }
 
     match osm.relations[0].members[1] {
         osm::Member::Node(ref ref_id, ref role) => {
             match *ref_id {
                 osm::UnresolvedReference::Node(id) => assert_eq!(id, 345579225),
-                _ => assert!(false, "Member reference was wrong type!")
+                _ => assert!(false, "Member reference was wrong type!"),
             }
             assert_eq!(*role, "visible".to_string());
-        },
-        _ => assert!(false, "Member was not expected Member-variant")
+        }
+        _ => assert!(false, "Member was not expected Member-variant"),
     }
 }
 
@@ -255,22 +255,22 @@ fn relation_way_members() {
         osm::Member::Way(ref ref_id, ref role) => {
             match *ref_id {
                 osm::UnresolvedReference::Way(id) => assert_eq!(id, 123365172),
-                _ => assert!(false, "Member reference was wrong type!")
+                _ => assert!(false, "Member reference was wrong type!"),
             }
             assert_eq!(*role, "outer".to_string());
-        },
-        _ => assert!(false, "Member was not expected Member-variant")
+        }
+        _ => assert!(false, "Member was not expected Member-variant"),
     }
 
     match osm.relations[1].members[1] {
         osm::Member::Way(ref ref_id, ref role) => {
             match *ref_id {
                 osm::UnresolvedReference::Way(id) => assert_eq!(id, 22147620),
-                _ => assert!(false, "Member reference was wrong type!")
+                _ => assert!(false, "Member reference was wrong type!"),
             }
             assert_eq!(*role, "inner".to_string());
-        },
-        _ => assert!(false, "Member was not expected Member-variant")
+        }
+        _ => assert!(false, "Member was not expected Member-variant"),
     }
 }
 
@@ -283,7 +283,7 @@ fn way_reference_resolving() {
         match osm.resolve_reference(node_ref) {
             osm::Reference::Node(_) => continue,
             osm::Reference::Unresolved => assert!(false, "Resolvable way node was not resolved!"),
-            _ => assert!(false, "Valid way references are always Nodes!")
+            _ => assert!(false, "Valid way references are always Nodes!"),
         }
     }
 }
@@ -296,7 +296,7 @@ fn way_invalid_reference_resolving() {
     match osm.resolve_reference(&osm.ways[1].nodes[0]) {
         osm::Reference::Node(node) => assert_eq!(*node, osm.nodes[0]),
         osm::Reference::Unresolved => assert!(false, "Resolvable way node was not resolved!"),
-        _ => assert!(false, "Valid way references are always Nodes!")
+        _ => assert!(false, "Valid way references are always Nodes!"),
     }
 
     match osm.resolve_reference(&osm.ways[1].nodes[1]) {
@@ -311,19 +311,23 @@ fn relation_node_reference_resolving() {
     let osm = OSM::parse(f).unwrap();
 
     match osm.relations[0].members[0] {
-        osm::Member::Node(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Node(node) => assert_eq!(*node, osm.nodes[0]),
-            _ => assert!(false, "Resolvable Relation member was not resolved!")
-        },
-        _ => assert!(false, "Member should have been Node!")
+        osm::Member::Node(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Node(node) => assert_eq!(*node, osm.nodes[0]),
+                _ => assert!(false, "Resolvable Relation member was not resolved!"),
+            }
+        }
+        _ => assert!(false, "Member should have been Node!"),
     }
 
     match osm.relations[0].members[1] {
-        osm::Member::Node(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Node(node) => assert_eq!(*node, osm.nodes[1]),
-            _ => assert!(false, "Resolvable Relation member was not resolved!")
-        },
-        _ => assert!(false, "Member should have been Node!")
+        osm::Member::Node(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Node(node) => assert_eq!(*node, osm.nodes[1]),
+                _ => assert!(false, "Resolvable Relation member was not resolved!"),
+            }
+        }
+        _ => assert!(false, "Member should have been Node!"),
     }
 }
 
@@ -333,19 +337,23 @@ fn relation_way_reference_resolving() {
     let osm = OSM::parse(f).unwrap();
 
     match osm.relations[1].members[0] {
-        osm::Member::Way(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Way(way) => assert_eq!(*way, osm.ways[0]),
-            _ => assert!(false, "Resolvable Relation member was not resolved!")
-        },
-        _ => assert!(false, "Member should have been Way!")
+        osm::Member::Way(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Way(way) => assert_eq!(*way, osm.ways[0]),
+                _ => assert!(false, "Resolvable Relation member was not resolved!"),
+            }
+        }
+        _ => assert!(false, "Member should have been Way!"),
     }
 
     match osm.relations[1].members[1] {
-        osm::Member::Way(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Way(way) => assert_eq!(*way, osm.ways[1]),
-            _ => assert!(false, "Resolvable Relation member was not resolved!")
-        },
-        _ => assert!(false, "Member should have been Way!")
+        osm::Member::Way(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Way(way) => assert_eq!(*way, osm.ways[1]),
+                _ => assert!(false, "Resolvable Relation member was not resolved!"),
+            }
+        }
+        _ => assert!(false, "Member should have been Way!"),
     }
 }
 
@@ -355,19 +363,23 @@ fn relation_relation_reference_resolving() {
     let osm = OSM::parse(f).unwrap();
 
     match osm.relations[4].members[0] {
-        osm::Member::Relation(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Relation(rel) => assert_eq!(*rel, osm.relations[2]),
-            _ => assert!(false, "Resolvable Relation member was not resolved!")
-        },
-        _ => assert!(false, "Member should have been Relation!")
+        osm::Member::Relation(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Relation(rel) => assert_eq!(*rel, osm.relations[2]),
+                _ => assert!(false, "Resolvable Relation member was not resolved!"),
+            }
+        }
+        _ => assert!(false, "Member should have been Relation!"),
     }
 
     match osm.relations[4].members[1] {
-        osm::Member::Relation(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Relation(rel) => assert_eq!(*rel, osm.relations[3]),
-            _ => assert!(false, "Resolvable Relation member was not resolved!")
-        },
-        _ => assert!(false, "Member should have been Relation!")
+        osm::Member::Relation(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Relation(rel) => assert_eq!(*rel, osm.relations[3]),
+                _ => assert!(false, "Resolvable Relation member was not resolved!"),
+            }
+        }
+        _ => assert!(false, "Member should have been Relation!"),
     }
 }
 
@@ -377,27 +389,51 @@ fn relation_with_unresolvable_node() {
     let osm = OSM::parse(f).unwrap();
 
     match osm.relations[5].members[0] {
-        osm::Member::Node(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Unresolved => assert!(true),
-            _ => assert!(false, "Unresolvable reference was resolved")
-        },
-        _ => assert!(false, "Member should have been Node!")
+        osm::Member::Node(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Unresolved => assert!(true),
+                _ => assert!(false, "Unresolvable reference was resolved"),
+            }
+        }
+        _ => assert!(false, "Member should have been Node!"),
     }
 
     match osm.relations[5].members[1] {
-        osm::Member::Way(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Unresolved => assert!(true),
-            _ => assert!(false, "Unresolvable reference was resolved")
-        },
-        _ => assert!(false, "Member should have been Way!")
+        osm::Member::Way(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Unresolved => assert!(true),
+                _ => assert!(false, "Unresolvable reference was resolved"),
+            }
+        }
+        _ => assert!(false, "Member should have been Way!"),
     }
 
     match osm.relations[5].members[2] {
-        osm::Member::Relation(ref mref, _) => match osm.resolve_reference(mref) {
-            osm::Reference::Unresolved => assert!(true),
-            _ => assert!(false, "Unresolvable reference was resolved")
-        },
-        _ => assert!(false, "Member should have been Relation!")
+        osm::Member::Relation(ref mref, _) => {
+            match osm.resolve_reference(mref) {
+                osm::Reference::Unresolved => assert!(true),
+                _ => assert!(false, "Unresolvable reference was resolved"),
+            }
+        }
+        _ => assert!(false, "Member should have been Relation!"),
     }
 }
 
+#[test]
+fn version_element() {
+    let f = File::open("./tests/test_data/relations.osm").unwrap();
+    let osm = OSM::parse(f).unwrap();
+    assert_eq!(osm.relations[5].version, 7);
+    assert_eq!(osm.ways[0].version, 3);
+    assert_eq!(osm.nodes[1].version, 6);
+}
+
+#[test]
+fn timestamp_element() {
+    let f = File::open("./tests/test_data/relations.osm").unwrap();
+    let osm = OSM::parse(f).unwrap();
+    assert_eq!(osm.relations[5].timestamp,
+               "2014-05-28T19:48:59Z".to_string());
+    assert_eq!(osm.ways[0].timestamp, "2014-10-20T20:03:35Z".to_string());
+    assert_eq!(osm.nodes[1].timestamp, "2012-12-10T12:46:34Z".to_string());
+}

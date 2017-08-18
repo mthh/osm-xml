@@ -3,6 +3,8 @@ use polygon;
 pub type Coordinate = f64;
 pub type Id = i64;
 pub type Role = String;
+pub type Version = i32;
+pub type Timestamp = String;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Tag {
@@ -24,6 +26,8 @@ pub struct Node {
     pub lat: Coordinate,
     pub lon: Coordinate,
     pub tags: Vec<Tag>,
+    pub version: Version,
+    pub timestamp: Timestamp,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -31,6 +35,8 @@ pub struct Way {
     pub id: Id,
     pub tags: Vec<Tag>,
     pub nodes: Vec<UnresolvedReference>,
+    pub version: Version,
+    pub timestamp: Timestamp,
 }
 
 impl Way {
@@ -44,6 +50,8 @@ pub struct Relation {
     pub id: Id,
     pub members: Vec<Member>,
     pub tags: Vec<Tag>,
+    pub version: Version,
+    pub timestamp: Timestamp,
 }
 
 #[derive(Debug, PartialEq, Clone)]
