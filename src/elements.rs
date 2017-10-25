@@ -5,6 +5,9 @@ pub type Id = i64;
 pub type Role = String;
 pub type Version = i32;
 pub type Timestamp = String;
+pub type User = String;
+pub type Changeset = i64;
+pub type Visible = String;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Tag {
@@ -28,6 +31,9 @@ pub struct Node {
     pub tags: Vec<Tag>,
     pub version: Version,
     pub timestamp: Timestamp,
+    pub user: User,
+    pub changeset: Changeset,
+    pub visible: Visible,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -37,6 +43,9 @@ pub struct Way {
     pub nodes: Vec<UnresolvedReference>,
     pub version: Version,
     pub timestamp: Timestamp,
+    pub user: User,
+    pub changeset: Changeset,
+    pub visible: Visible,
 }
 
 impl Way {
@@ -52,6 +61,9 @@ pub struct Relation {
     pub tags: Vec<Tag>,
     pub version: Version,
     pub timestamp: Timestamp,
+    pub user: User,
+    pub changeset: Changeset,
+    pub visible: Visible,
 }
 
 #[derive(Debug, PartialEq, Clone)]
